@@ -1,31 +1,3 @@
-defimpl Msgpax.Packer, for: DateTime do
-  import Bitwise
-
-  def pack(datetime) do
-    -1
-    |> Msgpax.ReservedExt.new(build_data(datetime))
-    |> @protocol.Msgpax.ReservedExt.pack()
-  end
-
-  defp build_data(datetime) do
-    total_nanoseconds = @for.to_unix(datetime, :nanosecond)
-    seconds = Integer.floor_div(total_nanoseconds, 1_000_000_000)
-    nanoseconds = Integer.mod(total_nanoseconds, 1_000_000_000)
-
-    if seconds >>> 34 == 0 do
-      content = nanoseconds <<< 34 ||| seconds
-
-      if (content &&& 0xFFFFFFFF00000000) == 0 do
-        <<content::32>>
-      else
-        <<content::64>>
-      end
-    else
-      <<nanoseconds::32, seconds::64>>
-    end
-  end
-end
-
 defmodule Msgpax.ReservedExt do
   @moduledoc """
   Reserved extensions automatically get handled by Msgpax.
